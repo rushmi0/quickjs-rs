@@ -1,14 +1,23 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use quickjs_sys::*;
+
+pub struct Runtime {
+    raw: *mut JSRuntime,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl Runtime {
+    pub fn new() -> Self {
+        unsafe {
+            let rt = JS_NewRuntime();
+            assert!(!rt.is_null());
+            Self { raw: rt }
+        }
+    }
+}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl Drop for Runtime {
+    fn drop(&mut self) {
+        unsafe {
+            JS_FreeRuntime(self.raw);
+        }
     }
 }

@@ -3,4 +3,13 @@ name = "quickjs-sys"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[build-dependencies]
+cmake = "0.1.51"
+cc = { version = "1.0", features = ["parallel"] }
+bindgen = "0.72.1"
+
+
+[features]
+default = ["bindgen"]
+bindgen = []
+nobindgen = []
