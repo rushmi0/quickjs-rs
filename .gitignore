@@ -1,2 +1,4 @@
 /target
 .idea
+/quickjs-test/target/
+/quickjs-sys/target/

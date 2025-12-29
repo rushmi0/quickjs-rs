@@ -1,7 +1,7 @@
 use std::{env, path::PathBuf};
 
 fn main() {
-    println!("cargo:rerun-if-changed=wrapper.h");
+    println!("cargo:rerun-if-changed=quickjs.bridge.h");
     println!("cargo:rerun-if-changed=quickjs");
 
     build_quickjs();
@@ -32,7 +32,7 @@ fn generate_bindings() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let bindings = bindgen::Builder::default()
-        .header("wrapper.h")
+        .header("quickjs.bridge.h")
         .derive_default(true)
         .generate_comments(false)
         .layout_tests(false)
