@@ -1,8 +1,40 @@
 use std::{env, path::PathBuf};
 
+const QUICKJS_HEADERS: &[&str] = &[
+    "builtin-array-fromasync.h",
+    "dtoa.h",
+    "libregexp-opcode.h",
+    "libregexp.h",
+    "libunicode-table.h",
+    "libunicode.h",
+    "list.h",
+    "quickjs-atom.h",
+    "quickjs-opcode.h",
+    "quickjs-c-atomics.h",
+    "quickjs.h",
+    "quickjs-libc.h",
+    "cutils.h",
+];
+
+const QUICKJS_SOURCES: &[&str] = &[
+    "quickjs-libc.c",
+    "quickjs.c",
+    "libunicode.c",
+    "libregexp.c",
+    "cutils.c",
+    "dtoa.c",
+];
+
 fn main() {
     println!("cargo:rerun-if-changed=quickjs.bridge.h");
-    println!("cargo:rerun-if-changed=quickjs");
+    println!("cargo:rerun-if-changed=quickjs.bridge.c");
+
+    for h in QUICKJS_HEADERS {
+        println!("cargo:rerun-if-changed=quickjs/{h}");
+    }
+    for c in QUICKJS_SOURCES {
+        println!("cargo:rerun-if-changed=quickjs/{c}");
+    }
 
     build_quickjs();
 
@@ -12,14 +44,13 @@ fn main() {
 }
 
 fn build_quickjs() {
-    cc::Build::new()
-        .files([
-            "quickjs/quickjs.c",
-            "quickjs/libunicode.c",
-            "quickjs/libregexp.c",
-            "quickjs/cutils.c",
-            "quickjs/dtoa.c",
-        ])
+    let mut cc = cc::Build::new();
+
+    for src in QUICKJS_SOURCES {
+        cc.file(format!("quickjs/{src}"));
+    }
+
+    cc.file("quickjs.bridge.c")
         .include("quickjs")
         .define("_GNU_SOURCE", None)
         .flag_if_supported("-std=c99")
@@ -33,13 +64,14 @@ fn generate_bindings() {
 
     let bindings = bindgen::Builder::default()
         .header("quickjs.bridge.h")
-        .derive_default(true)
-        .generate_comments(false)
-        .layout_tests(false)
         .clang_arg("-Iquickjs")
         .clang_arg("-std=c99")
-        .allowlist_type("JS.*")
+        .derive_default(true)
+        .generate_comments(true)
+        .layout_tests(false)
+        .allowlist_function("js_.*")
         .allowlist_function("JS_.*")
+        .allowlist_type("JS.*")
         .allowlist_var("JS_.*")
         .blocklist_item("FP_.*")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
